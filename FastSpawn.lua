@@ -1,26 +1,27 @@
 -- Spawns a new thread without waiting one step
 
-local Instance_new = Instance.new
+local ArgsBindable = Instance.new("BindableEvent")
+local VoidBindable = Instance.new("BindableEvent")
+
+ArgsBindable.Event:Connect(function(callback, argsPointer)
+	callback(argsPointer())
+end)
+VoidBindable.Event:Connect(function(callback)
+	callback()
+end)
 
 local function FastSpawn(Func, ...)
     --- Spawns a new thread to run a function on without waiting one step
     -- @param function Func The function to run on a new thread
 	-- @{...} parameters to pass to Func
 
-
-    local Bindable = Instance_new("BindableEvent")
-
 	if ... ~= nil then
 		local t = {...}
-		Bindable.Event:Connect(function()
-			Func(unpack(t))
-		end)
+		local pointer = function() return unpack(t) end
+		ArgsBindable:Fire(Func, pointer)
 	else
-		Bindable.Event:Connect(Func)
+		VoidBindable.Fire(Func)
 	end
-
-    Bindable:Fire()
-    Bindable:Destroy()
 end
 
 return FastSpawn
